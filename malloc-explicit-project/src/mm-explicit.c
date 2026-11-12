@@ -187,9 +187,12 @@ static void list_remove(block_t *block) {
  */
 __attribute__((unused))
 static block_t *get_prev_block(block_t *block) {
-    (void) block;
-    // TODO (Checkpoint 3)
-    return NULL;
+    if (block == mm_heap_first || mm_heap_first == NULL) {
+        return NULL;
+    }
+    size_t *prev_footer = (void *) block - sizeof(size_t);
+    size_t prev_size = *prev_footer & ~1;
+    return (void *) block - prev_size;
 }
 
 /*
@@ -287,8 +290,29 @@ void mm_free(void *ptr) {
 
     // Mark the block as unallocated
     block_t *block = block_from_payload(ptr);
+    // Coalesce with the next block if it exists and is free
+    block_t *next = get_next_block(block);
+    if (next != NULL && !is_allocated(next)) {
+        list_remove(next);
+        size += get_size(next);
+        if (next == mm_heap_last) {
+            mm_heap_last = block;
+        }
+    }
+
+    // Coalesce with the previous block if it exists and is free
+    block_t *prev = get_prev_block(block);
+    if (prev != NULL && !is_allocated(prev)) {
+        list_remove(prev);
+        size += get_size(prev);
+        if (block == mm_heap_last) {
+            mm_heap_last = prev;
+        }
+        block = prev;
+    }
     set_header(block, get_size(block), false);
     list_add(block);
+
 
 }
 
