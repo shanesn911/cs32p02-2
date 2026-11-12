@@ -141,13 +141,8 @@ static void set_header(block_t *block, size_t size, bool is_allocated) {
  */
 static block_t *find_fit(size_t size) {
     // Traverse the blocks in the heap using the implicit list
-    for (
-        block_t *curr = mm_heap_first;
-        mm_heap_last != NULL && curr <= mm_heap_last;
-        curr = (void *) curr + get_size(curr)
-    ) {
-        // If the block is free and large enough for the allocation, return it
-        if (!is_allocated(curr) && get_size(curr) >= size) {
+    for (block_t *curr = free_list_head; curr != NULL; curr = curr->next) {
+        if (get_size(curr) >= size) {
             return curr;
         }
     }
@@ -164,17 +159,28 @@ static block_t *block_from_payload(void *ptr) {
 }
 
 /** list_add - Adds a free block to the front of the free list. (Checkpoint 1) */
-__attribute__((unused))
 static void list_add(block_t *block) {
-    (void) block;
-    // TODO (Checkpoint 1)
+    block->next = free_list_head;
+    block->prev = NULL;
+    if (free_list_head != NULL) {
+        free_list_head->prev = block;
+    }
+    free_list_head = block;
+
 }
 
 /** list_remove - Removes a block from the free list. (Checkpoint 1) */
-__attribute__((unused))
 static void list_remove(block_t *block) {
-    (void) block;
-    // TODO (Checkpoint 1)
+    if (block->prev != NULL) {
+        block->prev->next = block->next;
+    } else {
+        free_list_head = block->next;
+    }
+    if (block->next != NULL) {
+        block->next->prev = block->prev;
+    }
+    block->next = NULL;
+    block->prev = NULL;
 }
 
 /**
@@ -285,6 +291,9 @@ void mm_free(void *ptr) {
     // Mark the block as unallocated
     block_t *block = block_from_payload(ptr);
     set_header(block, get_size(block), false);
+    size_t size = get_size(block);
+    list_add(block);
+
 }
 
 /**
@@ -298,10 +307,26 @@ void mm_free(void *ptr) {
  * If size is 0, behaves like mm_free(old_ptr) and returns NULL.
  */
 void *mm_realloc(void *old_ptr, size_t size) {
-    // PASTE: replace this body with the body of your Part 1 mm_realloc.
-    (void) old_ptr;
-    (void) size;
-    return NULL;
+   if (old_ptr == NULL) {
+        return mm_malloc(size);
+    }
+    if (size == 0) {
+        mm_free(old_ptr);
+        return NULL;
+    }
+
+    block_t *old_block = block_from_payload(old_ptr);
+    size_t old_size = get_size(old_block) - 2 * sizeof(size_t);
+
+    void *new_ptr = mm_malloc(size);
+    if (new_ptr == NULL) {
+        return NULL;
+    }
+
+    size_t copy_size = size < old_size ? size : old_size;
+    memcpy(new_ptr, old_ptr, copy_size);
+    mm_free(old_ptr);
+    return new_ptr;
 }
 
 /**
@@ -311,10 +336,17 @@ void *mm_realloc(void *old_ptr, size_t size) {
  * byte set to 0, and returns a pointer to it.
  */
 void *mm_calloc(size_t nmemb, size_t size) {
-    // PASTE: replace this body with the body of your Part 1 mm_calloc.
-    (void) nmemb;
-    (void) size;
-    return NULL;
+   size_t total = nmemb * size;
+    if (nmemb != 0 && (total / nmemb != size)) {
+        return NULL;
+    }
+    void *ptr = mm_malloc(total);
+    if (ptr == NULL) {
+        return NULL;
+    }
+    memset(ptr, 0, total);
+    return ptr;
+
 }
 
 /**
