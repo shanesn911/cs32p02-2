@@ -3,7 +3,7 @@
 #
 
 CLEAN_COMMAND = rm -f out/* bin/*
-CC = clang
+CC = gcc
 CFLAGS = -Werror -Wall -Wextra -O3 -g
 
 all: bin/mdriver-explicit

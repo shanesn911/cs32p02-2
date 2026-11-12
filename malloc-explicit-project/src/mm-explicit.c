@@ -42,6 +42,7 @@
 
 /** The required alignment of heap payloads */
 const size_t ALIGNMENT = 2 * sizeof(size_t);
+const size_t MIN_BLOCK_SIZE = 4 * sizeof(size_t);
 
 /**
  * The layout of each block on the heap.
