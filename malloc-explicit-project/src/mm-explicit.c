@@ -100,6 +100,7 @@ static size_t get_size(block_t *block) {
 }
 
 /** Extracts a block's allocation state from its header */
+__attribute__((unused))
 static bool is_allocated(block_t *block) {
     return block->header & 1;
 }
