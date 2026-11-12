@@ -112,18 +112,13 @@ static bool is_allocated(block_t *block) {
  */
 
 /** get_footer - Returns a pointer to the block's footer: its last 8 bytes. (Checkpoint 2) */
-__attribute__((unused))
 static size_t *get_footer(block_t *block) {
-    (void) block;
-    // TODO (Checkpoint 2)
-    return NULL;
+    return (void *) block + get_size(block) - sizeof(size_t);
 }
 
 /** set_footer - Copies the block's header into its footer. (Checkpoint 2) */
-__attribute__((unused))
 static void set_footer(block_t *block) {
-    (void) block;
-    // TODO (Checkpoint 2)
+    *get_footer(block) = block->header;
 }
 
 /**
@@ -133,6 +128,7 @@ static void set_footer(block_t *block) {
  */
 static void set_header(block_t *block, size_t size, bool is_allocated) {
     block->header = size | is_allocated;
+    set_footer(block);
 }
 
 /**
