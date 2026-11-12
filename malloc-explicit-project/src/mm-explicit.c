@@ -291,7 +291,6 @@ void mm_free(void *ptr) {
     // Mark the block as unallocated
     block_t *block = block_from_payload(ptr);
     set_header(block, get_size(block), false);
-    size_t size = get_size(block);
     list_add(block);
 
 }
