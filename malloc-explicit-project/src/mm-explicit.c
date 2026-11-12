@@ -291,9 +291,6 @@ void mm_free(void *ptr) {
     // Mark the block as unallocated
     block_t *block = block_from_payload(ptr);
     size_t size = get_size(block);
-    // Coalesce with the next block if it exists and is free
-    block_t *block = block_from_payload(ptr);
-    size_t size = get_size(block);
 
     // Coalesce with the next block if it exists and is free
     if (block != mm_heap_last) {
