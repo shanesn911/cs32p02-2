@@ -292,6 +292,7 @@ void mm_free(void *ptr) {
     block_t *block = block_from_payload(ptr);
     // Coalesce with the next block if it exists and is free
     block_t *next = get_next_block(block);
+    size_t size = get_size(block);
     if (next != NULL && !is_allocated(next)) {
         list_remove(next);
         size += get_size(next);
