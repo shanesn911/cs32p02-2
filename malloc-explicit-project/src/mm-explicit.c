@@ -293,7 +293,7 @@ void mm_free(void *ptr) {
     size_t size = get_size(block);
     // Coalesce with the next block if it exists and is free
     if (next != NULL && !is_allocated(next)) {
-        block_t *next = get_next_block(block);
+        block_t *next = (block_t *)((char *)block + size);
         list_remove(next);
         size += get_size(next);
         if (next == mm_heap_last) {
