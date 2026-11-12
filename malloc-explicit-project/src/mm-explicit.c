@@ -292,12 +292,18 @@ void mm_free(void *ptr) {
     block_t *block = block_from_payload(ptr);
     size_t size = get_size(block);
     // Coalesce with the next block if it exists and is free
-    if (next != NULL && !is_allocated(next)) {
+    block_t *block = block_from_payload(ptr);
+    size_t size = get_size(block);
+
+    // Coalesce with the next block if it exists and is free
+    if (block != mm_heap_last) {
         block_t *next = (block_t *)((char *)block + size);
-        list_remove(next);
-        size += get_size(next);
-        if (next == mm_heap_last) {
-            mm_heap_last = block;
+        if (!is_allocated(next)) {
+            list_remove(next);
+            size += get_size(next);
+            if (next == mm_heap_last) {
+                mm_heap_last = block;
+            }
         }
     }
 
@@ -311,9 +317,9 @@ void mm_free(void *ptr) {
         }
         block = prev;
     }
-    set_header(block, get_size(block), false);
-    list_add(block);
 
+    set_header(block, size, false);
+    list_add(block);
 
 }
 
